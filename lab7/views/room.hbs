@@ -1,6 +1,12 @@
 <h1> Room </h1>
 <p>This is a demo of chatroom page</p>
-<p>
-    The room you are visiting is {{ roomName }}
-</p>
+<p>The room you are visiting is {{ roomName }}</p>
 <p>To generate a new room, here is the room id: {{ newRoomId }}</p>
+
+<div id="messages"></div>
+<form id="message-form">
+  <input type="text" name="message" placeholder="Type your message here" required />
+  <button type="submit">Send</button>
+</form>
+
+<script src="/js/main.js"></script>
