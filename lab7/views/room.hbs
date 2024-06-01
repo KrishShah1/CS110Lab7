@@ -1,12 +1,46 @@
-<h1> Room </h1>
+<h1>Room {{ roomName }}</h1>
 <p>This is a demo of chatroom page</p>
-<p>The room you are visiting is {{ roomName }}</p>
-<p>To generate a new room, here is the room id: {{ newRoomId }}</p>
 
 <div id="messages"></div>
 <form id="message-form">
+  <input type="text" name="nickname" placeholder="Your nickname" required />
   <input type="text" name="message" placeholder="Type your message here" required />
   <button type="submit">Send</button>
 </form>
 
 <script src="/js/main.js"></script>
+<script>
+  const roomName = "{{ roomName }}";
+
+  async function fetchMessages() {
+    const response = await fetch(`/${roomName}/messages`);
+    const messages = await response.json();
+    const messagesDiv = document.getElementById('messages');
+    messagesDiv.innerHTML = '';
+    messages.forEach(message => {
+      const messageElement = document.createElement('div');
+      messageElement.innerHTML = `<strong>${message.nickname}</strong>: ${message.body} <em>(${message.datetime})</em>`;
+      messagesDiv.appendChild(messageElement);
+    });
+  }
+
+  fetchMessages();
+  setInterval(fetchMessages, 3000);
+
+  document.getElementById('message-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const nickname = form.nickname.value;
+    const body = form.message.value;
+    const datetime = new Date().toLocaleString();
+
+    await fetch(`/${roomName}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nickname, body, datetime })
+    });
+
+    form.message.value = '';
+    fetchMessages();
+  });
+</script>

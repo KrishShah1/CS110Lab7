@@ -10,7 +10,7 @@ const homeHandler = require('./controllers/home.js');
 const roomHandler = require('./controllers/room.js');
 
 const app = express();
-const port = 3000;
+const port = 8080;
 
 // MongoDB connection setup
 const uri = "mongodb+srv://ktran254:lab7110@cs110lab7.1j3rkdn.mongodb.net/?retryWrites=true&w=majority&appName=CS110Lab7"; // Replace with your MongoDB connection string
