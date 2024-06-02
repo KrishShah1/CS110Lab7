@@ -1,4 +1,5 @@
-// Import dependencies
+// server.js
+
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const hbs = require('express-handlebars');
@@ -13,15 +14,14 @@ const app = express();
 const port = 8080;
 
 // MongoDB connection setup
-const uri = "mongodb+srv://ktran254:lab7110@cs110lab7.1j3rkdn.mongodb.net/?retryWrites=true&w=majority&appName=CS110Lab7"; // Replace with your MongoDB connection string
+const uri = "mongodb+srv://ktran254:lab7110@cs110lab7.1j3rkdn.mongodb.net/?retryWrites=true&w=majority&appName=CS110Lab7";
 const client = new MongoClient(uri);
-
-let db;
 
 async function connectToDatabase() {
   try {
     await client.connect();
-    db = client.db("chatroomDB");
+    const db = client.db("chatroomDB");
+    app.locals.db = db;
     console.log("Connected to MongoDB");
 
     const collections = await db.listCollections().toArray();
@@ -63,7 +63,10 @@ app.get('/:roomName', roomHandler.getRoom);
 app.post('/create', async (req, res) => {
   try {
     const roomName = req.body.roomName || roomHandler.roomIdGenerator();
-    await db.collection("chatrooms").insertOne({ roomName, messages: [] });
+    const existingRoom = await app.locals.db.collection("chatrooms").findOne({ roomName });
+    if (!existingRoom) {
+      await app.locals.db.collection("chatrooms").insertOne({ roomName, messages: [] });
+    }
     res.redirect(`/${roomName}`);
   } catch (error) {
     console.error("Error creating chatroom:", error);
@@ -71,10 +74,11 @@ app.post('/create', async (req, res) => {
   }
 });
 
+
 // Create API call to get messages for a chatroom
 app.get('/:roomName/messages', async (req, res) => {
   const roomName = req.params.roomName;
-  const room = await db.collection("chatrooms").findOne({ roomName });
+  const room = await app.locals.db.collection("chatrooms").findOne({ roomName });
   res.json(room ? room.messages : []);
 });
 
@@ -82,7 +86,7 @@ app.get('/:roomName/messages', async (req, res) => {
 app.post('/:roomName/messages', async (req, res) => {
   const roomName = req.params.roomName;
   const { nickname, body, datetime } = req.body;
-  await db.collection("chatrooms").updateOne(
+  await app.locals.db.collection("chatrooms").updateOne(
     { roomName },
     { $push: { messages: { nickname, body, datetime } } }
   );

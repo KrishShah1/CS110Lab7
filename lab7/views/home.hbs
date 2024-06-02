@@ -5,3 +5,10 @@
   <input type="text" name="roomName" placeholder="Enter Room Name" required>
   <button type="submit">Create Room</button>
 </form>
+
+<h2>Available Chatrooms</h2>
+<ul>
+  {{#each chatrooms}}
+    <li><a href="/{{this.roomName}}">{{this.roomName}}</a></li>
+  {{/each}}
+</ul>
