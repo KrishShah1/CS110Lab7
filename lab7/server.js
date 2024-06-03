@@ -28,12 +28,6 @@ async function connectToDatabase() {
     if (!collections.map((coll) => coll.name).includes("chatrooms")) {
       await db.createCollection("chatrooms");
     }
-    if (!collections.map((coll) => coll.name).includes("users")) {
-      await db.createCollection("users");
-    }
-    if (!collections.map((coll) => coll.name).includes("messages")) {
-      await db.createCollection("messages");
-    }
 
     // Start the server after the database connection is established
     app.listen(port, () => console.log(`Server listening on http://localhost:${port}`));
@@ -58,37 +52,6 @@ app.set('view engine', 'hbs');
 // Create controller handlers to handle requests at each endpoint
 app.get('/', homeHandler.getHome);
 app.get('/:roomName', roomHandler.getRoom);
-
-// Create API call to create a new chatroom
-app.post('/create', async (req, res) => {
-  try {
-    const roomName = req.body.roomName || roomHandler.roomIdGenerator();
-    const existingRoom = await app.locals.db.collection("chatrooms").findOne({ roomName });
-    if (!existingRoom) {
-      await app.locals.db.collection("chatrooms").insertOne({ roomName, messages: [] });
-    }
-    res.redirect(`/${roomName}`);
-  } catch (error) {
-    console.error("Error creating chatroom:", error);
-    res.status(500).send("Internal Server Error");
-  }
-});
-
-
-// Create API call to get messages for a chatroom
-app.get('/:roomName/messages', async (req, res) => {
-  const roomName = req.params.roomName;
-  const room = await app.locals.db.collection("chatrooms").findOne({ roomName });
-  res.json(room ? room.messages : []);
-});
-
-// Create API call to post messages to a chatroom
-app.post('/:roomName/messages', async (req, res) => {
-  const roomName = req.params.roomName;
-  const { nickname, body, datetime } = req.body;
-  await app.locals.db.collection("chatrooms").updateOne(
-    { roomName },
-    { $push: { messages: { nickname, body, datetime } } }
-  );
-  res.sendStatus(200);
-});
+app.get('/:roomName/messages', homeHandler.getMessages);
+app.post('/create', homeHandler.createChatroom);
+app.post('/:roomName/messages', homeHandler.postMessages);
